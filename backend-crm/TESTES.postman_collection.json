@@ -1,0 +1,367 @@
+{
+  "info": {
+    "name": "Marcenaria CRM API",
+    "_postman_id": "12345678-abcd-efgh-ijkl-987654321",
+    "description": "Coleção de testes da API Marcenaria CRM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:8080" },
+    { "key": "TOKEN_ADMIN", "value": "" },
+    { "key": "TOKEN_USER", "value": "" },
+    { "key": "CLIENTE_ID", "value": "" },
+    { "key": "PEDIDO_ID", "value": "" },
+    { "key": "ESTOQUE_ID", "value": "" },
+    { "key": "MOVIMENTACAO_ID", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Registrar Usuário",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{BASE_URL}}/auth/register" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"email\": \"teste@exemplo.com\", \"senha\": \"Senha@123\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200 ou 201\", function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Login Usuário",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{BASE_URL}}/auth/login" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"email\": \"teste@exemplo.com\", \"senha\": \"Senha@123\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "pm.test(\"Resposta contém token\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"token\");",
+          "    pm.environment.set(\"TOKEN_USER\", jsonData.token);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Login ADMIN",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{BASE_URL}}/auth/login" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"email\": \"admin@exemplo.com\", \"senha\": \"Admin@123\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "pm.test(\"Resposta contém token\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"token\");",
+          "    pm.environment.set(\"TOKEN_ADMIN\", jsonData.token);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Listar Usuários (ADMIN)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_ADMIN}}" }],
+        "url": { "raw": "{{BASE_URL}}/usuarios" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Cadastrar Cliente",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/clientes" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"nome\": \"Cliente Teste\", \"telefone\": \"11999999999\", \"email\": \"cliente@teste.com\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 201\", function () {",
+          "    pm.response.to.have.status(201);",
+          "});",
+          "pm.test(\"Resposta contém ID do cliente\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"id\");",
+          "    pm.environment.set(\"CLIENTE_ID\", jsonData.id);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Listar Clientes",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }],
+        "url": { "raw": "{{BASE_URL}}/clientes" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Atualizar Cliente",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/clientes/{{CLIENTE_ID}}" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"nome\": \"Cliente Atualizado\", \"telefone\": \"11888888888\", \"email\": \"cliente@teste.com\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Deletar Cliente",
+      "request": {
+        "method": "DELETE",
+        "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }],
+        "url": { "raw": "{{BASE_URL}}/clientes/{{CLIENTE_ID}}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 204\", function () {",
+          "    pm.response.to.have.status(204);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Cadastrar Pedido",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/pedidos?clienteId={{CLIENTE_ID}}" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"descricao\": \"Armário planejado\", \"valor\": 1500.00, \"status\": \"ABERTO\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 201\", function () {",
+          "    pm.response.to.have.status(201);",
+          "});",
+          "pm.test(\"Resposta contém ID do pedido\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"id\");",
+          "    pm.environment.set(\"PEDIDO_ID\", jsonData.id);",
+          "});"
+        ]}
+      }]
+    },
+        {
+      "name": "Listar Pedidos",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/pedidos" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Atualizar Pedido",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/pedidos/{{PEDIDO_ID}}" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"descricao\": \"Armário planejado atualizado\", \"valor\": 2000.00, \"status\": \"EM PRODUCAO\" }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Deletar Pedido",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/pedidos/{{PEDIDO_ID}}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 204\", function () {",
+          "    pm.response.to.have.status(204);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Cadastrar Item Estoque",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/estoque" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"nome\": \"Martelo\", \"quantidade\": 5, \"valorUnitario\": 30.0 }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200 ou 201\", function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+          "});",
+          "pm.test(\"Resposta contém ID do item\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"id\");",
+          "    pm.environment.set(\"ESTOQUE_ID\", jsonData.id);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Listar Itens Estoque",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/estoque" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Registrar Retirada Estoque",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/movimentacao" },
+        "body": {
+          "mode": "raw",
+          "raw": "{ \"item\": { \"id\": \"{{ESTOQUE_ID}}\" }, \"funcionario\": \"Carlos\", \"quantidadeRetirada\": 2 }"
+        }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "pm.test(\"Resposta contém ID da movimentação\", function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property(\"id\");",
+          "    pm.environment.set(\"MOVIMENTACAO_ID\", jsonData.id);",
+          "});"
+        ]}
+      }]
+    },
+    {
+      "name": "Relatório Movimentações Funcionário",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{TOKEN_USER}}" }
+        ],
+        "url": { "raw": "{{BASE_URL}}/movimentacao/funcionario/Carlos" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test(\"Status code é 200\", function () {",
+          "    pm.response.to.have.status(200);",
+          "});"
+        ]}
+      }]
+    }
+  ]
+}
