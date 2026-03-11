@@ -20,6 +20,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> {}) // habilita CORS com config padrão
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos
                 .requestMatchers("/auth/login", "/auth/register").permitAll()
@@ -39,6 +40,7 @@ public class WebSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // BCrypt é padrão para senhas seguras
         return new BCryptPasswordEncoder();
     }
 

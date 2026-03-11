@@ -10,4 +10,8 @@ spring:
     open-in-view: false
     properties:
       hibernate:
-        "[format_sql]": true
+        format_sql: true
+
+jwt:
+  secret: "uma_chave_secreta_bem_grande_e_segura"
+  expiration: 3600000 # 1 hora em milissegundos
