@@ -56,8 +56,13 @@ public class ClienteService {
 		clienteRepository.delete(existente);
 	}
 
+	public long contarClientes() {
+		return clienteRepository.count();
+	}
+
 	private Usuario usuarioLogado() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		return (Usuario) auth.getPrincipal();
 	}
+
 }

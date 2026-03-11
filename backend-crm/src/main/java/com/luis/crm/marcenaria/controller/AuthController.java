@@ -3,6 +3,8 @@ package com.luis.crm.marcenaria.controller;
 import com.luis.crm.marcenaria.model.Usuario;
 import com.luis.crm.marcenaria.security.JwtUtil;
 import com.luis.crm.marcenaria.service.UsuarioService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -32,26 +35,31 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(@RequestBody Usuario usuario) {
-        // autentica email + senha
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha())
-        );
+    public ResponseEntity<?> login(@RequestBody Usuario usuario) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(usuario.getEmail(), usuario.getSenha())
+            );
 
-        // busca usuário real do banco
-        Usuario usuarioBanco = usuarioService
-                .findByEmail(usuario.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            Usuario usuarioBanco = usuarioService
+                    .findByEmail(usuario.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
-        // gera token JWT com claims corretos
-        String token = jwtUtil.generateToken(
-                org.springframework.security.core.userdetails.User
-                        .withUsername(usuarioBanco.getEmail())
-                        .password(usuarioBanco.getSenha())
-                        .authorities("ROLE_" + usuarioBanco.getRole().name())
-                        .build()
-        );
+            String token = jwtUtil.generateToken(
+                    org.springframework.security.core.userdetails.User
+                            .withUsername(usuarioBanco.getEmail())
+                            .password(usuarioBanco.getSenha())
+                            .authorities("ROLE_" + usuarioBanco.getRole().name())
+                            .build()
+            );
 
-        return Map.of("token", token);
+            return ResponseEntity.ok(Map.of(
+                    "token", token,
+                    "user", usuarioBanco
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Usuário ou senha inválidos"));
+        }
     }
 }

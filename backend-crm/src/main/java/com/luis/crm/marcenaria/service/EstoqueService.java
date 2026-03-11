@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-
 @Service
 public class EstoqueService {
 
@@ -28,7 +27,33 @@ public class EstoqueService {
 		return estoqueRepository.save(item);
 	}
 
+	public long contarItens() {
+		return estoqueRepository.count();
+	}
+
 	public List<Estoque> listarItens() {
 		return estoqueRepository.findAll();
 	}
+
+	public Estoque atualizarItem(UUID id, Estoque item) {
+		Estoque existente = estoqueRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+
+		if (item.getQuantidade() == null || item.getQuantidade() < 0) {
+			throw new IllegalArgumentException("Quantidade inválida");
+		}
+
+		existente.setNome(item.getNome());
+		existente.setQuantidade(item.getQuantidade());
+		existente.setValorUnitario(item.getValorUnitario());
+
+		return estoqueRepository.save(existente);
+	}
+
+	public void deletarItem(UUID id) {
+		Estoque existente = estoqueRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+		estoqueRepository.delete(existente);
+	}
+
 }

@@ -12,40 +12,44 @@ import java.util.List;
 @Service
 public class MovimentacaoService {
 
-    private final MovimentacaoRepository movimentacaoRepository;
-    private final EstoqueRepository estoqueRepository;
+	private final MovimentacaoRepository movimentacaoRepository;
+	private final EstoqueRepository estoqueRepository;
 
-    public MovimentacaoService(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository) {
-        this.movimentacaoRepository = movimentacaoRepository;
-        this.estoqueRepository = estoqueRepository;
-    }
+	public MovimentacaoService(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository) {
+		this.movimentacaoRepository = movimentacaoRepository;
+		this.estoqueRepository = estoqueRepository;
+	}
 
-    public Movimentacao registrarRetirada(Movimentacao movimentacao) {
-        Estoque item = estoqueRepository.findById(movimentacao.getItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+	public Movimentacao registrarRetirada(Movimentacao movimentacao) {
+		Estoque item = estoqueRepository.findById(movimentacao.getItem().getId())
+				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
 
-        if (item.getQuantidade() < movimentacao.getQuantidadeRetirada()) {
-            throw new IllegalArgumentException("Quantidade insuficiente em estoque");
-        }
+		if (item.getQuantidade() < movimentacao.getQuantidadeRetirada()) {
+			throw new IllegalArgumentException("Quantidade insuficiente em estoque");
+		}
 
-        item.setQuantidade(item.getQuantidade() - movimentacao.getQuantidadeRetirada());
-        estoqueRepository.save(item);
+		item.setQuantidade(item.getQuantidade() - movimentacao.getQuantidadeRetirada());
+		estoqueRepository.save(item);
 
-        movimentacao.setData(LocalDateTime.now());
-        Movimentacao salva = movimentacaoRepository.save(movimentacao);
+		movimentacao.setData(LocalDateTime.now());
+		Movimentacao salva = movimentacaoRepository.save(movimentacao);
 
-        if (item.getQuantidade() == 1) {
-            System.out.println("⚠️ Alerta: Estoque baixo para o item " + item.getNome());
-        }
+		if (item.getQuantidade() == 1) {
+			System.out.println("⚠️ Alerta: Estoque baixo para o item " + item.getNome());
+		}
 
-        return salva;
-    }
+		return salva;
+	}
 
-    public List<Movimentacao> listarTodos() {
-        return movimentacaoRepository.findAll();
-    }
+	public long contarMovimentacoes() {
+		return movimentacaoRepository.count();
+	}
 
-    public List<Movimentacao> relatorioPorFuncionario(String funcionario) {
-        return movimentacaoRepository.findByFuncionario(funcionario);
-    }
+	public List<Movimentacao> listarTodos() {
+		return movimentacaoRepository.findAll();
+	}
+
+	public List<Movimentacao> relatorioPorFuncionario(String funcionario) {
+		return movimentacaoRepository.findByFuncionario(funcionario);
+	}
 }
