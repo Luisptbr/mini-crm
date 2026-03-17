@@ -43,19 +43,24 @@ TUTORIAL DE INSTALAÇÃO E EXECUÇÃO
    cd mini-crm
 
 2. Configurar o banco de dados (PostgreSQL via Docker):
+   
    docker run --name mini-crm-db ^
+   
    -e POSTGRES_PASSWORD=admin ^
+
    -e POSTGRES_USER=admin ^
+   
    -e POSTGRES_DB=crmdb ^
+   
    -p 5432:5432 -d postgres:15
 
-3. Executar o backend:
+4. Executar o backend:
    cd backend-crm
    mvn clean install
    mvn spring-boot:run
    Backend disponível em: http://localhost:8080
 
-4. Executar o frontend:
+5. Executar o frontend:
    cd frontend-crm
    pnpm install
    pnpm start
