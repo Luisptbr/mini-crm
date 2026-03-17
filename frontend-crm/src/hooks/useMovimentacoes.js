@@ -5,8 +5,8 @@ export function useMovimentacoes() {
   return useQuery({
     queryKey: ["movimentacoes"],
     queryFn: async () => {
-      const { data } = await api.get("/movimentacoes");
-      return data;
+      const { data } = await api.get("/movimentacao");
+      return Array.isArray(data) ? data : [];
     },
   });
 }
