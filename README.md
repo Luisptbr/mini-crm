@@ -105,25 +105,7 @@ FUNCIONALIDADES
 ![Clientes - Tema Claro](docs/images/clientes-light.png)
 ![Clientes - Tema Escuro](docs/images/clientes-dark.png)
 
-### Pedidos
 
-![Pedidos - Tema Claro](docs/images/pedidos-light.png)
-![Pedidos - Tema Escuro](docs/images/pedidos-dark.png)
-
-### Estoque
-
-![Estoque - Tema Claro](docs/images/estoque-light.png)
-![Estoque - Tema Escuro](docs/images/estoque-dark.png)
-
-### Movimentações
-
-![Movimentações - Tema Claro](docs/images/movimentacoes-light.png)
-![Movimentações - Tema Escuro](docs/images/movimentacoes-dark.png)
-
-### Relatórios
-
-![Relatórios - Tema Claro](docs/images/relatorios-light.png)
-![Relatórios - Tema Escuro](docs/images/relatorios-dark.png)
 
 ---
 
