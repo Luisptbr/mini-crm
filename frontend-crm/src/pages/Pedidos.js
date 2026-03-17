@@ -9,46 +9,64 @@ import {
   TextField,
   DialogActions,
   MenuItem,
+  IconButton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState } from "react";
 import { usePedidos } from "../hooks/usePedidos";
 import { useClientes } from "../hooks/useClientes";
 import api from "../services/api";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+// Função utilitária para definir cores dos status
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Em Análise":
+      return "warning.main"; // amarelo
+    case "Aprovado":
+    case "Em Produção":
+    case "Instalação":
+      return "primary.main"; // azul
+    case "Finalizado":
+      return "success.main"; // verde
+    case "Reprovado":
+    case "Cancelado":
+      return "error.main"; // vermelho
+    default:
+      return "text.primary"; // cor padrão
+  }
+};
 
 function Pedidos() {
   const { data: pedidos, isLoading, refetch } = usePedidos();
   const { data: clientes } = useClientes();
   const [open, setOpen] = useState(false);
 
-  // Estados do formulário
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [status, setStatus] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [editingId, setEditingId] = useState(null);
 
-  // Criar ou editar pedido
   const handleSave = async () => {
     try {
       if (editingId) {
-        // Atualiza todos os campos com os valores atuais
         const payload = {
           descricao,
           valor: Number(valor),
           status,
-          clienteId,
+          cliente: { id: clienteId },
         };
         await api.put(`/pedidos/${editingId}`, payload);
       } else {
-        // Criação de novo pedido
-        await api.post(`/pedidos/${clienteId}`, {
+        const payload = {
           descricao,
           valor: Number(valor),
           status,
-        });
+        };
+        await api.post(`/pedidos/${clienteId}`, payload);
       }
-
       handleClose();
       refetch();
     } catch (error) {
@@ -60,7 +78,6 @@ function Pedidos() {
     }
   };
 
-  // Abrir modal para editar
   const handleEdit = (pedido) => {
     setDescricao(pedido.descricao || "");
     setValor(pedido.valor?.toString() || "");
@@ -70,7 +87,6 @@ function Pedidos() {
     setOpen(true);
   };
 
-  // Excluir pedido com confirmação
   const handleDelete = async (pedido) => {
     if (
       window.confirm(
@@ -82,7 +98,6 @@ function Pedidos() {
     }
   };
 
-  // Resetar estados e devolver foco ao botão principal
   const handleClose = () => {
     setOpen(false);
     setDescricao("");
@@ -93,7 +108,6 @@ function Pedidos() {
     document.getElementById("novo-pedido-btn")?.focus();
   };
 
-  // Mapeia pedidos para incluir nome do cliente e valor formatado
   const pedidosComCliente = pedidos?.map((pedido) => ({
     ...pedido,
     clienteNome: pedido.cliente?.nome || "Cliente não encontrado",
@@ -103,45 +117,86 @@ function Pedidos() {
     }).format(pedido.valor || 0),
   }));
 
+  const statusOptions = [
+    "Em Análise",
+    "Aprovado",
+    "Reprovado",
+    "Cancelado",
+    "Em Produção",
+    "Instalação",
+    "Finalizado",
+  ];
+
   const columns = [
     { field: "descricao", headerName: "Descrição", width: 250 },
     { field: "valorFormatado", headerName: "Valor", width: 150 },
-    { field: "status", headerName: "Status", width: 150 },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 180,
+      renderCell: (params) => (
+        <TextField
+          select
+          size="small"
+          value={params.row.status}
+          onChange={async (e) => {
+            const novoStatus = e.target.value;
+            try {
+              await api.put(`/pedidos/${params.row.id}`, {
+                descricao: params.row.descricao,
+                valor: params.row.valor,
+                status: novoStatus,
+                cliente: { id: params.row.cliente?.id },
+              });
+              refetch();
+            } catch (error) {
+              console.error(
+                "Erro ao atualizar status:",
+                error.response?.data || error.message,
+              );
+              alert("Erro ao atualizar status. Verifique o backend.");
+            }
+          }}
+          sx={{
+            "& .MuiSelect-select": {
+              color: getStatusColor(params.row.status),
+              fontWeight: "bold",
+            },
+          }}
+        >
+          {statusOptions.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </TextField>
+      ),
+    },
     { field: "clienteNome", headerName: "Cliente", width: 200 },
     {
       field: "actions",
       headerName: "Ações",
-      width: 200,
+      width: 120,
       renderCell: (params) => (
         <>
-          <Button
-            variant="outlined"
+          <IconButton
             color="primary"
             size="small"
             onClick={() => handleEdit(params.row)}
             sx={{ mr: 1 }}
           >
-            Editar
-          </Button>
-          <Button
-            variant="outlined"
+            <EditIcon />
+          </IconButton>
+          <IconButton
             color="error"
             size="small"
             onClick={() => handleDelete(params.row)}
           >
-            Excluir
-          </Button>
+            <DeleteIcon />
+          </IconButton>
         </>
       ),
     },
-  ];
-
-  const statusOptions = [
-    "Em análise",
-    "Aprovado",
-    "Em produção",
-    "Instalação",
-    "Finalizado",
   ];
 
   return (
@@ -166,21 +221,20 @@ function Pedidos() {
       </Button>
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
+          autoHeight
           rows={pedidosComCliente || []}
           columns={columns}
           loading={isLoading}
-          pageSize={5}
+          pageSize={10}
+          pagination
+          rowsPerPageOptions={[10, 25, 50, 100]}
         />
       </Paper>
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        disableEnforceFocus
-        disableRestoreFocus
-      >
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{editingId ? "Editar Pedido" : "Novo Pedido"}</DialogTitle>
         <DialogContent>
           <TextField
+            autoFocus
             label="Descrição"
             fullWidth
             margin="normal"
@@ -202,6 +256,12 @@ function Pedidos() {
             margin="normal"
             value={status || ""}
             onChange={(e) => setStatus(e.target.value)}
+            sx={{
+              "& .MuiSelect-select": {
+                color: getStatusColor(status),
+                fontWeight: "bold",
+              },
+            }}
           >
             {statusOptions.map((option) => (
               <MenuItem key={option} value={option}>
