@@ -8,7 +8,7 @@ O sistema permite gerenciar clientes, pedidos, estoque, movimentações e relat�
 
 ESTRUTURA DO PROJETO
 
-![Estrutura do Projeto](docs/images/estrutura-projeto.png)
+![Estrutura do Projeto](docs/images/estrutura.png)
 
 ---
 
