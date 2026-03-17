@@ -10,50 +10,41 @@ import java.util.UUID;
 @Service
 public class EstoqueService {
 
-	private final EstoqueRepository estoqueRepository;
+    private final EstoqueRepository estoqueRepository;
 
-	public EstoqueService(EstoqueRepository estoqueRepository) {
-		this.estoqueRepository = estoqueRepository;
-	}
+    public EstoqueService(EstoqueRepository estoqueRepository) {
+        this.estoqueRepository = estoqueRepository;
+    }
 
-	public List<Estoque> listarPorUsuario(UUID usuarioId) {
-		return estoqueRepository.findByUsuarioId(usuarioId);
-	}
+    public List<Estoque> listarPorUsuario(UUID usuarioId) {
+        return estoqueRepository.findByUsuarioId(usuarioId);
+    }
 
-	public Estoque cadastrarItem(Estoque item) {
-		if (item.getQuantidade() == null || item.getQuantidade() < 0) {
-			throw new IllegalArgumentException("Quantidade inválida");
-		}
-		return estoqueRepository.save(item);
-	}
+    public Estoque cadastrarItem(Estoque item) {
+        if (item.getQuantidade() == null || item.getQuantidade() < 0) {
+            throw new IllegalArgumentException("Quantidade inválida");
+        }
+        return estoqueRepository.save(item);
+    }
 
-	public long contarItens() {
-		return estoqueRepository.count();
-	}
+    public long contarItensPorUsuario(UUID usuarioId) {
+        return estoqueRepository.countByUsuarioId(usuarioId);
+    }
 
-	public List<Estoque> listarItens() {
-		return estoqueRepository.findAll();
-	}
+    public Estoque atualizarItem(UUID id, Estoque item) {
+        Estoque existente = estoqueRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
 
-	public Estoque atualizarItem(UUID id, Estoque item) {
-		Estoque existente = estoqueRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+        existente.setNome(item.getNome());
+        existente.setQuantidade(item.getQuantidade());
+        existente.setValorUnitario(item.getValorUnitario());
 
-		if (item.getQuantidade() == null || item.getQuantidade() < 0) {
-			throw new IllegalArgumentException("Quantidade inválida");
-		}
+        return estoqueRepository.save(existente);
+    }
 
-		existente.setNome(item.getNome());
-		existente.setQuantidade(item.getQuantidade());
-		existente.setValorUnitario(item.getValorUnitario());
-
-		return estoqueRepository.save(existente);
-	}
-
-	public void deletarItem(UUID id) {
-		Estoque existente = estoqueRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
-		estoqueRepository.delete(existente);
-	}
-
+    public void deletarItem(UUID id) {
+        Estoque existente = estoqueRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+        estoqueRepository.delete(existente);
+    }
 }

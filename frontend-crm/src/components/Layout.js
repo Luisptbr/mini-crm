@@ -19,12 +19,14 @@ import LogoutButton from "./LogoutButton";
 const drawerWidth = 240;
 
 function Layout({ children, darkMode, toggleTheme }) {
-  const role = localStorage.getItem("role");
+  // Recupera o usuário completo salvo no localStorage
+  const user = JSON.parse(localStorage.getItem("user"));
+  const role = user?.role;
 
+  // Menus
   const menuAdmin = [
     { text: "Dashboard", path: "/dashboard" },
     { text: "Usuários", path: "/usuarios" },
-    { text: "Relatórios", path: "/relatorios" },
   ];
 
   const menuUser = [
@@ -107,7 +109,7 @@ function Layout({ children, darkMode, toggleTheme }) {
           p: 3,
           ml: `${drawerWidth}px`,
           minHeight: "100vh",
-          width: `calc(100% - ${drawerWidth}px)`, // garante largura total
+          width: `calc(100% - ${drawerWidth}px)`,
         }}
       >
         <Toolbar />

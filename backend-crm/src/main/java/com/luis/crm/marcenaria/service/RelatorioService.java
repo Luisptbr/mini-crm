@@ -1,7 +1,6 @@
 package com.luis.crm.marcenaria.service;
 
 import com.luis.crm.marcenaria.dto.RelatorioDTO;
-import com.luis.crm.marcenaria.dto.RelatorioDTO.PedidosPorStatus;
 import com.luis.crm.marcenaria.model.Pedido;
 import com.luis.crm.marcenaria.model.Estoque;
 import com.luis.crm.marcenaria.repository.ClienteRepository;
@@ -11,69 +10,84 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class RelatorioService {
 
-	private final ClienteRepository clienteRepo;
-	private final PedidoRepository pedidoRepo;
-	private final EstoqueRepository estoqueRepo;
+    private final ClienteRepository clienteRepo;
+    private final PedidoRepository pedidoRepo;
+    private final EstoqueRepository estoqueRepo;
 
-	public RelatorioService(ClienteRepository clienteRepo, PedidoRepository pedidoRepo, EstoqueRepository estoqueRepo) {
-		this.clienteRepo = clienteRepo;
-		this.pedidoRepo = pedidoRepo;
-		this.estoqueRepo = estoqueRepo;
-	}
+    public RelatorioService(ClienteRepository clienteRepo,
+                            PedidoRepository pedidoRepo,
+                            EstoqueRepository estoqueRepo) {
+        this.clienteRepo = clienteRepo;
+        this.pedidoRepo = pedidoRepo;
+        this.estoqueRepo = estoqueRepo;
+    }
 
-	public RelatorioDTO gerarRelatorio() {
-		RelatorioDTO dto = new RelatorioDTO();
+    public RelatorioDTO gerarRelatorioPorUsuario(UUID usuarioId) {
+        RelatorioDTO dto = new RelatorioDTO();
 
-		dto.setClientes(clienteRepo.count());
-		dto.setPedidos(pedidoRepo.count());
-		dto.setEstoque(estoqueRepo.count());
+        dto.setClientes(clienteRepo.countByUsuarioId(usuarioId));
+        dto.setPedidos(pedidoRepo.countByUsuarioId(usuarioId));
+        dto.setEstoque(estoqueRepo.countByUsuarioId(usuarioId));
 
-		dto.setFaturamentoRealizado(calcularFaturamentoRealizado());
-		dto.setFaturamentoPrevisto(calcularFaturamentoPrevisto());
-		dto.setCustoEstoque(calcularCustoEstoque());
-		dto.setPedidosPorStatus(gerarPedidosPorStatus());
+        dto.setFaturamentoRealizado(calcularFaturamentoRealizadoPorUsuario(usuarioId));
+        dto.setFaturamentoPrevisto(calcularFaturamentoPrevistoPorUsuario(usuarioId));
+        dto.setCustoEstoque(calcularCustoEstoquePorUsuario(usuarioId));
+        dto.setPedidosPorStatus(gerarPedidosPorStatusPorUsuario(usuarioId));
 
-		return dto;
-	}
+        return dto;
+    }
 
-	// ---------------- Métodos auxiliares ---------------- //
+    private double calcularFaturamentoRealizadoPorUsuario(UUID usuarioId) {
+        return pedidoRepo.findByStatusAndUsuarioId("Finalizado", usuarioId)
+                .stream()
+                .map(Pedido::getValor)
+                .filter(this::valorValido)
+                .mapToDouble(BigDecimal::doubleValue)
+                .sum();
+    }
 
-	private double calcularFaturamentoRealizado() {
-		return pedidoRepo.findByStatus("Finalizado").stream().map(Pedido::getValor).filter(this::valorValido)
-				.mapToDouble(BigDecimal::doubleValue).sum();
-	}
+    private double calcularFaturamentoPrevistoPorUsuario(UUID usuarioId) {
+        return pedidoRepo.findByStatusInAndUsuarioId(
+                        List.of("Aprovado", "Em Produção", "Instalação"), usuarioId)
+                .stream()
+                .map(Pedido::getValor)
+                .filter(this::valorValido)
+                .mapToDouble(BigDecimal::doubleValue)
+                .sum();
+    }
 
-	private double calcularFaturamentoPrevisto() {
-		return pedidoRepo.findByStatusIn(List.of("Aprovado", "Em Produção", "Instalação")).stream()
-				.map(Pedido::getValor).filter(this::valorValido).mapToDouble(BigDecimal::doubleValue).sum();
-	}
+    private double calcularCustoEstoquePorUsuario(UUID usuarioId) {
+        return estoqueRepo.findByUsuarioId(usuarioId)
+                .stream()
+                .mapToDouble(e -> {
+                    if (e.getValorUnitario() == null || e.getQuantidade() == null) return 0.0;
+                    return e.getQuantidade() * e.getValorUnitario();
+                })
+                .sum();
+    }
 
-	private double calcularCustoEstoque() {
-		return estoqueRepo.findAll().stream().mapToDouble(this::calcularCustoItemEstoque).sum();
-	}
+    private List<RelatorioDTO.PedidosPorStatus> gerarPedidosPorStatusPorUsuario(UUID usuarioId) {
+        return pedidoRepo.findByUsuarioId(usuarioId)
+                .stream()
+                .collect(Collectors.groupingBy(Pedido::getStatus, Collectors.counting()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    RelatorioDTO.PedidosPorStatus ps = new RelatorioDTO.PedidosPorStatus();
+                    ps.setStatus(entry.getKey());
+                    ps.setTotal(entry.getValue());
+                    return ps;
+                })
+                .collect(Collectors.toList());
+    }
 
-	private double calcularCustoItemEstoque(Estoque e) {
-		if (e.getValorUnitario() == null || e.getQuantidade() == null)
-			return 0.0;
-		return e.getQuantidade() * e.getValorUnitario();
-	}
-
-	private List<PedidosPorStatus> gerarPedidosPorStatus() {
-		return pedidoRepo.findAll().stream().collect(Collectors.groupingBy(Pedido::getStatus, Collectors.counting()))
-				.entrySet().stream().map(entry -> {
-					PedidosPorStatus ps = new PedidosPorStatus();
-					ps.setStatus(entry.getKey());
-					ps.setTotal(entry.getValue());
-					return ps;
-				}).collect(Collectors.toList());
-	}
-
-	private boolean valorValido(BigDecimal valor) {
-		return valor != null && valor.compareTo(BigDecimal.ZERO) >= 0;
-	}
+    private boolean valorValido(BigDecimal valor) {
+        return valor != null && valor.compareTo(BigDecimal.ZERO) >= 0;
+    }
 }

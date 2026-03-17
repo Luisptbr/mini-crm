@@ -7,60 +7,35 @@ import java.util.UUID;
 @Entity
 public class Estoque implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	@Id
-	@GeneratedValue
-	private UUID id; 
+    @Id
+    @GeneratedValue
+    private UUID id;
 
-	private String nome;
-	private Integer quantidade;
+    private String nome;
+    private Integer quantidade;
 
-	@Column(nullable = true)
-	private Double valorUnitario; 
+    @Column(nullable = true)
+    private Double valorUnitario;
 
-	@ManyToOne(optional = true)
-	@JoinColumn(name = "usuario_id", nullable = false)
-	private Usuario usuario;
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
 
-	// Getters e Setters
-	public UUID getId() {
-		return id;
-	}
+    // Getters e Setters
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
 
-	public void setId(UUID id) {
-		this.id = id;
-	}
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-	public String getNome() {
-		return nome;
-	}
+    public Integer getQuantidade() { return quantidade; }
+    public void setQuantidade(Integer quantidade) { this.quantidade = quantidade; }
 
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
+    public Double getValorUnitario() { return valorUnitario; }
+    public void setValorUnitario(Double valorUnitario) { this.valorUnitario = valorUnitario; }
 
-	public Integer getQuantidade() {
-		return quantidade;
-	}
-
-	public void setQuantidade(Integer quantidade) {
-		this.quantidade = quantidade;
-	}
-
-	public Double getValorUnitario() {
-		return valorUnitario;
-	}
-
-	public void setValorUnitario(Double valorUnitario) {
-		this.valorUnitario = valorUnitario;
-	}
-
-	public Usuario getUsuario() {
-		return usuario;
-	}
-
-	public void setUsuario(Usuario usuario) {
-		this.usuario = usuario;
-	}
+    public Usuario getUsuario() { return usuario; }
+    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
 }

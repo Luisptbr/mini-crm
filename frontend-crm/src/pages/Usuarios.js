@@ -17,7 +17,7 @@ import { useUsuarios } from "../hooks/useUsuarios";
 import api from "../services/api";
 
 function Usuarios() {
-  const { data: usuarios, isLoading, refetch } = useUsuarios();
+  const { data: usuarios, isLoading, error, refetch } = useUsuarios();
 
   // Estados para modal
   const [open, setOpen] = useState(false);
@@ -27,17 +27,23 @@ function Usuarios() {
   // Campos do formulário
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("USER");
+  const [senha, setSenha] = useState("");
 
   // Feedback visual
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   const handleOpenNew = () => {
     setEditMode(false);
     setSelectedUser(null);
     setNome("");
     setEmail("");
-    setRole("");
+    setRole("USER");
+    setSenha("");
     setOpen(true);
   };
 
@@ -47,37 +53,63 @@ function Usuarios() {
     setNome(user.nome);
     setEmail(user.email);
     setRole(user.role);
+    setSenha(""); // senha só redefine se preenchida
     setOpen(true);
   };
 
   const handleSave = async () => {
     try {
       if (editMode && selectedUser) {
-        await api.put(`/usuarios/${selectedUser.id}`, { nome, email, role });
-        setSnackbar({ open: true, message: "Usuário atualizado com sucesso!", severity: "success" });
+        await api.put(`/usuarios/${selectedUser.id}`, {
+          nome,
+          email,
+          role,
+          senha,
+        });
+        setSnackbar({
+          open: true,
+          message: "Usuário atualizado com sucesso!",
+          severity: "success",
+        });
       } else {
-        await api.post("/usuarios", { nome, email, role });
-        setSnackbar({ open: true, message: "Usuário criado com sucesso!", severity: "success" });
+        await api.post("/usuarios", { nome, email, role, senha });
+        setSnackbar({
+          open: true,
+          message: "Usuário criado com sucesso!",
+          severity: "success",
+        });
       }
       setOpen(false);
       refetch();
     } catch (error) {
-      setSnackbar({ open: true, message: "Erro ao salvar usuário!", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Erro ao salvar usuário!",
+        severity: "error",
+      });
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await api.delete(`/usuarios/${id}`);
-      setSnackbar({ open: true, message: "Usuário excluído com sucesso!", severity: "success" });
+      setSnackbar({
+        open: true,
+        message: "Usuário excluído com sucesso!",
+        severity: "success",
+      });
       refetch();
     } catch (error) {
-      setSnackbar({ open: true, message: "Erro ao excluir usuário!", severity: "error" });
+      setSnackbar({
+        open: true,
+        message: "Erro ao excluir usuário!",
+        severity: "error",
+      });
     }
   };
 
+  // Apenas Nome, Email, Role e Ações
   const columns = [
-    { field: "id", headerName: "ID", width: 90 },
     { field: "nome", headerName: "Nome", width: 200 },
     { field: "email", headerName: "Email", width: 250 },
     { field: "role", headerName: "Role", width: 150 },
@@ -129,12 +161,16 @@ function Usuarios() {
           columns={columns}
           loading={isLoading}
           pageSize={10}
+          disableSelectionOnClick
+          getRowId={(row) => row.id} // garante que o DataGrid use o id internamente
         />
       </Paper>
 
       {/* Modal de cadastro/edição */}
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>{editMode ? "Editar Usuário" : "Novo Usuário"}</DialogTitle>
+        <DialogTitle>
+          {editMode ? "Editar Usuário" : "Novo Usuário"}
+        </DialogTitle>
         <DialogContent>
           <TextField
             label="Nome"
@@ -157,6 +193,14 @@ function Usuarios() {
             value={role}
             onChange={(e) => setRole(e.target.value)}
           />
+          <TextField
+            label="Senha"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancelar</Button>
@@ -171,9 +215,13 @@ function Usuarios() {
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+
+      {/* Tratamento de erro global */}
+      {error && <Alert severity="error">{error.message}</Alert>}
     </Container>
   );
 }

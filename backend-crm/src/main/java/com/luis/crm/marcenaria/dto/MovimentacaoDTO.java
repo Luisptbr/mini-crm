@@ -5,17 +5,21 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 public class MovimentacaoDTO {
+
 	private UUID id;
 	private String produto;
 	private Integer quantidade;
 	private String data;
 	private String funcionario;
 
+	public MovimentacaoDTO() {
+	}
+
 	public MovimentacaoDTO(UUID id, String produto, Integer quantidade, LocalDate data, String funcionario) {
 		this.id = id;
 		this.produto = produto;
 		this.quantidade = quantidade;
-		this.data = data != null ? data.format(DateTimeFormatter.ofPattern("dd/MM/yy")) : null;
+		this.data = (data != null ? data.format(DateTimeFormatter.ofPattern("dd/MM/yy")) : null);
 		this.funcionario = funcionario;
 	}
 

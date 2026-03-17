@@ -7,20 +7,22 @@ import java.util.UUID;
 
 @Entity
 public class Movimentacao implements Serializable {
-	
+
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
 	@GeneratedValue
-	private UUID id; // UUID gerado automaticamente
+	private UUID id;
 
-	@ManyToOne
-	@JoinColumn(name = "item_id")
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "item_id", nullable = false)
 	private Estoque item;
 
-	// Agora apenas um campo String para registrar o nome
-	private String funcionario;
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "usuario_id", nullable = false)
+	private Usuario usuario;
 
+	private String funcionario;
 	private Integer quantidadeRetirada;
 	private LocalDateTime data;
 
@@ -39,6 +41,14 @@ public class Movimentacao implements Serializable {
 
 	public void setItem(Estoque item) {
 		this.item = item;
+	}
+
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
 
 	public String getFuncionario() {

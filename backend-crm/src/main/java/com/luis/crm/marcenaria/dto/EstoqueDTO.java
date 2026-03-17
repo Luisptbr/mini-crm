@@ -1,22 +1,35 @@
 package com.luis.crm.marcenaria.dto;
 
+import java.util.UUID;
+
 public class EstoqueDTO {
-	private Long id;
+
+	private UUID id;
 	private String produto;
 	private Integer quantidade;
 	private Double precoUnitario;
 
-	// getters e setters
-	public Long getId() {
-		return this.id;
+	public EstoqueDTO() {
 	}
 
-	public void setId(Long id) {
+	public EstoqueDTO(UUID id, String produto, Integer quantidade, Double precoUnitario) {
+		this.id = id;
+		this.produto = produto;
+		this.quantidade = quantidade;
+		this.precoUnitario = precoUnitario;
+	}
+
+	// Getters e Setters
+	public UUID getId() {
+		return id;
+	}
+
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
 	public String getProduto() {
-		return this.produto;
+		return produto;
 	}
 
 	public void setProduto(String produto) {
@@ -24,7 +37,7 @@ public class EstoqueDTO {
 	}
 
 	public Integer getQuantidade() {
-		return this.quantidade;
+		return quantidade;
 	}
 
 	public void setQuantidade(Integer quantidade) {
@@ -32,11 +45,10 @@ public class EstoqueDTO {
 	}
 
 	public Double getPrecoUnitario() {
-		return this.precoUnitario;
+		return precoUnitario;
 	}
 
 	public void setPrecoUnitario(Double precoUnitario) {
 		this.precoUnitario = precoUnitario;
 	}
-
 }

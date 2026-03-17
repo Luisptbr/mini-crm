@@ -25,8 +25,10 @@ function Login({ toggleTheme, darkMode }) {
     e.preventDefault();
     try {
       const { data } = await api.post("/auth/login", { email, senha });
+
+      // Salva token e usuário completo
       localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
       if (rememberMe) {
         localStorage.setItem("rememberEmail", email);
@@ -34,7 +36,12 @@ function Login({ toggleTheme, darkMode }) {
         localStorage.removeItem("rememberEmail");
       }
 
-      navigate("/dashboard");
+      // Redireciona conforme role
+      if (data.user.role === "ADMIN") {
+        navigate("/usuarios"); // dashboard de administração
+      } else {
+        navigate("/dashboard"); // página padrão para USER
+      }
     } catch (error) {
       alert("Login inválido");
     }
