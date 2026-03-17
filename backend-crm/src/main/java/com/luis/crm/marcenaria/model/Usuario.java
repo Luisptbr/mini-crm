@@ -19,97 +19,109 @@ import jakarta.persistence.Id;
 @Entity
 public class Usuario implements UserDetails {
 	private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private UUID id;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+	@Column(unique = true, nullable = false)
+	private String email;
 
-    @Column(nullable = false)
-    private String senha;
+	@Column(nullable = false)
+	private String senha;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role = Role.USER;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Role role = Role.USER;
 
-    // Construtor vazio
-    public Usuario() {
-    }
+	@Column(nullable = false)
+	private String nome;
 
-    public Usuario(UUID id, String email, String senha, Role role) {
-        this.id = id;
-        this.email = email;
-        this.senha = senha;
-        this.role = role;
-    }
+	// Construtor vazio
+	public Usuario() {
+	}
 
-    // Getters & Setters
-    public UUID getId() {
-        return this.id;
-    }
+	public Usuario(UUID id, String email, String senha, Role role) {
+		this.id = id;
+		this.nome = nome;
+		this.email = email;
+		this.senha = senha;
+		this.role = role;
+	}
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+	// Getters & Setters
+	public UUID getId() {
+		return this.id;
+	}
 
-    public String getEmail() {
-        return this.email;
-    }
+	public void setId(UUID id) {
+		this.id = id;
+	}
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	public String getEmail() {
+		return this.email;
+	}
 
-    public String getSenha() {
-        return this.senha;
-    }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
+	public String getSenha() {
+		return this.senha;
+	}
 
-    public Role getRole() {
-        return this.role;
-    }
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
 
-    public void setRole(Role role) {
-        this.role = role;
-    }
+	public Role getRole() {
+		return this.role;
+	}
 
-    // Métodos obrigatórios do UserDetails
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
-    }
+	public void setRole(Role role) {
+		this.role = role;
+	}
 
-    @Override
-    public String getPassword() {
-        return senha;
-    }
+	// Métodos obrigatórios do UserDetails
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+	}
 
-    @Override
-    public String getUsername() {
-        return email;
-    }
+	@Override
+	public String getPassword() {
+		return senha;
+	}
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+	@Override
+	public String getUsername() {
+		return email;
+	}
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
+
+	public String getNome() {
+		return nome;
+	}
+
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
 }

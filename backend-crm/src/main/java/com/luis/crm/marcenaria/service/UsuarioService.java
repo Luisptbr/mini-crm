@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Primary
@@ -26,27 +27,21 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public Usuario salvar(Usuario usuario) {
-        // Verifica duplicidade de email
         usuarioRepository.findByEmail(usuario.getEmail())
-            .ifPresent(u -> {
-                throw new IllegalArgumentException("Email já cadastrado!");
-            });
+            .ifPresent(u -> { throw new IllegalArgumentException("Email já cadastrado!"); });
 
-        // Valida formato do email
         if (!usuario.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
             throw new IllegalArgumentException("Formato de email inválido!");
         }
 
-        // Valida senha
         if (!isSenhaValida(usuario.getSenha())) {
             throw new IllegalArgumentException("Senha não atende aos requisitos de segurança!");
         }
 
-        // Criptografa senha
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-
-        // Define role automaticamente como USER
-        usuario.setRole(Role.USER);
+        if (usuario.getRole() == null) {
+            usuario.setRole(Role.USER);
+        }
 
         return usuarioRepository.save(usuario);
     }
@@ -59,9 +54,21 @@ public class UsuarioService implements UserDetailsService {
     public List<Usuario> listar() {
         return usuarioRepository.findAll();
     }
-    
+
     public Optional<Usuario> findByEmail(String email) {
         return usuarioRepository.findByEmail(email);
+    }
+
+    public Optional<Usuario> buscarPorId(UUID id) {
+        return usuarioRepository.findById(id);
+    }
+
+    public Usuario atualizar(Usuario usuario) {
+        return usuarioRepository.save(usuario);
+    }
+
+    public void deletar(UUID id) {
+        usuarioRepository.deleteById(id);
     }
 
     @Override

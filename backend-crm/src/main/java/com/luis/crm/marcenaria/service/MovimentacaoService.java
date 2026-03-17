@@ -15,79 +15,56 @@ import java.util.stream.Collectors;
 @Service
 public class MovimentacaoService {
 
-    private final MovimentacaoRepository movimentacaoRepository;
-    private final EstoqueRepository estoqueRepository;
+	private final MovimentacaoRepository movimentacaoRepository;
+	private final EstoqueRepository estoqueRepository;
 
-    public MovimentacaoService(MovimentacaoRepository movimentacaoRepository,
-                               EstoqueRepository estoqueRepository) {
-        this.movimentacaoRepository = movimentacaoRepository;
-        this.estoqueRepository = estoqueRepository;
-    }
+	public MovimentacaoService(MovimentacaoRepository movimentacaoRepository, EstoqueRepository estoqueRepository) {
+		this.movimentacaoRepository = movimentacaoRepository;
+		this.estoqueRepository = estoqueRepository;
+	}
 
-    public Movimentacao registrarRetirada(Movimentacao movimentacao) {
-        Estoque item = estoqueRepository.findById(movimentacao.getItem().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
+	public Movimentacao registrarRetirada(Movimentacao movimentacao) {
+		Estoque item = estoqueRepository.findById(movimentacao.getItem().getId())
+				.orElseThrow(() -> new IllegalArgumentException("Item não encontrado"));
 
-        if (item.getQuantidade() < movimentacao.getQuantidadeRetirada()) {
-            throw new IllegalArgumentException("Quantidade insuficiente em estoque");
-        }
+		if (item.getQuantidade() < movimentacao.getQuantidadeRetirada()) {
+			throw new IllegalArgumentException("Quantidade insuficiente em estoque");
+		}
 
-        item.setQuantidade(item.getQuantidade() - movimentacao.getQuantidadeRetirada());
-        estoqueRepository.save(item);
+		item.setQuantidade(item.getQuantidade() - movimentacao.getQuantidadeRetirada());
+		estoqueRepository.save(item);
 
-        movimentacao.setData(LocalDateTime.now());
-        return movimentacaoRepository.save(movimentacao);
-    }
+		movimentacao.setData(LocalDateTime.now());
+		return movimentacaoRepository.save(movimentacao);
+	}
 
-    public long contarMovimentacoes() {
-        return movimentacaoRepository.count();
-    }
+	public long contarMovimentacoesPorUsuario(UUID usuarioId) {
+		return movimentacaoRepository.findByUsuarioId(usuarioId).size();
+	}
 
-    public List<MovimentacaoDTO> listarTodos() {
-        return movimentacaoRepository.findAll()
-                .stream()
-                .map(m -> new MovimentacaoDTO(
-                        m.getId(),
-                        m.getItem().getNome(),
-                        m.getQuantidadeRetirada(),
-                        m.getData().toLocalDate(),
-                        m.getFuncionario()
-                ))
-                .collect(Collectors.toList());
-    }
+	public List<MovimentacaoDTO> listarPorUsuario(UUID usuarioId) {
+		return movimentacaoRepository.findByUsuarioId(usuarioId).stream()
+				.map(m -> new MovimentacaoDTO(m.getId(), m.getItem() != null ? m.getItem().getNome() : null,
+						m.getQuantidadeRetirada(), m.getData() != null ? m.getData().toLocalDate() : null,
+						m.getFuncionario()))
+				.collect(Collectors.toList());
+	}
 
-    public List<MovimentacaoDTO> relatorioPorFuncionario(String funcionario) {
-        return movimentacaoRepository.findByFuncionario(funcionario)
-                .stream()
-                .map(m -> new MovimentacaoDTO(
-                        m.getId(),
-                        m.getItem().getNome(),
-                        m.getQuantidadeRetirada(),
-                        m.getData().toLocalDate(),
-                        m.getFuncionario()
-                ))
-                .collect(Collectors.toList());
-    }
+	public void excluir(UUID id) {
+		movimentacaoRepository.deleteById(id);
+	}
 
-    public void excluir(UUID id) {
-        movimentacaoRepository.deleteById(id);
-    }
+	public MovimentacaoDTO editar(UUID id, MovimentacaoDTO dto) {
+		Movimentacao mov = movimentacaoRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Movimentação não encontrada"));
 
-    public MovimentacaoDTO editar(UUID id, MovimentacaoDTO dto) {
-        Movimentacao mov = movimentacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Movimentação não encontrada"));
+		mov.setFuncionario(dto.getFuncionario());
+		mov.setQuantidadeRetirada(dto.getQuantidade());
 
-        mov.setFuncionario(dto.getFuncionario());
-        mov.setQuantidadeRetirada(dto.getQuantidade());
+		movimentacaoRepository.save(mov);
 
-        movimentacaoRepository.save(mov);
-
-        return new MovimentacaoDTO(
-                mov.getId(),
-                mov.getItem().getNome(),
-                mov.getQuantidadeRetirada(),
-                mov.getData().toLocalDate(),
-                mov.getFuncionario()
-        );
-    }
+		return new MovimentacaoDTO(mov.getId(), mov.getItem() != null ? mov.getItem().getNome() : null,
+				mov.getQuantidadeRetirada(), mov.getData() != null ? mov.getData().toLocalDate() : null,
+				mov.getFuncionario());
+	}
 }

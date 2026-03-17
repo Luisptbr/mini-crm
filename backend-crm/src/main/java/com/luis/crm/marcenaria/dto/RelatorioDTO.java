@@ -8,9 +8,9 @@ public class RelatorioDTO {
 	private long pedidos;
 	private long estoque;
 
-	private double faturamentoRealizado; // pedidos finalizados
-	private double faturamentoPrevisto; // pedidos aprovados/em produção/instalação
-	private double custoEstoque; // custo total do estoque
+	private double faturamentoRealizado;
+	private double faturamentoPrevisto;
+	private double custoEstoque;
 
 	private List<PedidosPorStatus> pedidosPorStatus;
 
@@ -71,7 +71,7 @@ public class RelatorioDTO {
 		this.pedidosPorStatus = pedidosPorStatus;
 	}
 
-	// Classe interna para detalhar pedidos por status
+	// Classe interna
 	public static class PedidosPorStatus {
 		private String status;
 		private long total;

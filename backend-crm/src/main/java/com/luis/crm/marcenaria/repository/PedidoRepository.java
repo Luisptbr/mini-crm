@@ -18,4 +18,11 @@ public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
 	List<Pedido> findByStatus(String status);
 
 	List<Pedido> findByStatusIn(List<String> status);
+
+	long countByUsuarioId(UUID usuarioId);
+
+	List<Pedido> findByStatusAndUsuarioId(String status, UUID usuarioId);
+
+	List<Pedido> findByStatusInAndUsuarioId(List<String> status, UUID usuarioId);
+
 }

@@ -7,5 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MovimentacaoRepository extends JpaRepository<Movimentacao, UUID> {
+	List<Movimentacao> findByUsuarioId(UUID usuarioId);
+
 	List<Movimentacao> findByFuncionario(String funcionario);
 }
