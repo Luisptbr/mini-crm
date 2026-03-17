@@ -39,6 +39,7 @@ function App() {
       <CssBaseline />
       <BrowserRouter>
         <Routes>
+          {/* Redireciona raiz para login */}
           <Route path="/" element={<Navigate to="/login" />} />
 
           {/* Login fora do Layout */}

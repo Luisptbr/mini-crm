@@ -10,6 +10,8 @@ import {
   DialogActions,
   MenuItem,
   IconButton,
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState } from "react";
@@ -23,50 +25,63 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const getStatusColor = (status) => {
   switch (status) {
     case "Em Análise":
-      return "warning.main"; // amarelo
+      return "warning.main";
     case "Aprovado":
     case "Em Produção":
     case "Instalação":
-      return "primary.main"; // azul
+      return "primary.main";
     case "Finalizado":
-      return "success.main"; // verde
+      return "success.main";
     case "Reprovado":
     case "Cancelado":
-      return "error.main"; // vermelho
+      return "error.main";
     default:
-      return "text.primary"; // cor padrão
+      return "text.primary";
   }
 };
 
 function Pedidos() {
-  const { data: pedidos, isLoading, refetch } = usePedidos();
+  const { data: pedidos, isLoading, error, refetch } = usePedidos();
   const { data: clientes } = useClientes();
-  const [open, setOpen] = useState(false);
 
+  const [open, setOpen] = useState(false);
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [status, setStatus] = useState("");
   const [clienteId, setClienteId] = useState("");
   const [editingId, setEditingId] = useState(null);
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const handleSave = async () => {
     try {
+      const payload = {
+        descricao,
+        valor: Number(valor),
+        status,
+        cliente: { id: clienteId },
+      };
+
       if (editingId) {
-        const payload = {
-          descricao,
-          valor: Number(valor),
-          status,
-          cliente: { id: clienteId },
-        };
         await api.put(`/pedidos/${editingId}`, payload);
+        setSnackbar({
+          open: true,
+          message: "Pedido atualizado com sucesso!",
+          severity: "success",
+        });
       } else {
-        const payload = {
-          descricao,
-          valor: Number(valor),
-          status,
-        };
         await api.post(`/pedidos/${clienteId}`, payload);
+        setSnackbar({
+          open: true,
+          message: "Pedido criado com sucesso!",
+          severity: "success",
+        });
       }
+
       handleClose();
       refetch();
     } catch (error) {
@@ -74,7 +89,11 @@ function Pedidos() {
         "Erro ao salvar pedido:",
         error.response?.data || error.message,
       );
-      alert("Não foi possível salvar o pedido. Verifique os dados.");
+      setSnackbar({
+        open: true,
+        message: "Erro ao salvar pedido!",
+        severity: "error",
+      });
     }
   };
 
@@ -93,8 +112,25 @@ function Pedidos() {
         `Tem certeza que deseja excluir o pedido "${pedido.descricao}"?`,
       )
     ) {
-      await api.delete(`/pedidos/${pedido.id}`);
-      refetch();
+      try {
+        await api.delete(`/pedidos/${pedido.id}`);
+        setSnackbar({
+          open: true,
+          message: "Pedido excluído com sucesso!",
+          severity: "success",
+        });
+        refetch();
+      } catch (error) {
+        console.error(
+          "Erro ao excluir pedido:",
+          error.response?.data || error.message,
+        );
+        setSnackbar({
+          open: true,
+          message: "Erro ao excluir pedido!",
+          severity: "error",
+        });
+      }
     }
   };
 
@@ -108,14 +144,17 @@ function Pedidos() {
     document.getElementById("novo-pedido-btn")?.focus();
   };
 
-  const pedidosComCliente = pedidos?.map((pedido) => ({
-    ...pedido,
-    clienteNome: pedido.cliente?.nome || "Cliente não encontrado",
-    valorFormatado: new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(pedido.valor || 0),
-  }));
+  // Garante que pedidos seja sempre array
+  const pedidosComCliente = Array.isArray(pedidos)
+    ? pedidos.map((pedido) => ({
+        ...pedido,
+        clienteNome: pedido.cliente?.nome || "Cliente não encontrado",
+        valorFormatado: new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        }).format(pedido.valor || 0),
+      }))
+    : [];
 
   const statusOptions = [
     "Em Análise",
@@ -154,7 +193,11 @@ function Pedidos() {
                 "Erro ao atualizar status:",
                 error.response?.data || error.message,
               );
-              alert("Erro ao atualizar status. Verifique o backend.");
+              setSnackbar({
+                open: true,
+                message: "Erro ao atualizar status!",
+                severity: "error",
+              });
             }
           }}
           sx={{
@@ -222,7 +265,7 @@ function Pedidos() {
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
           autoHeight
-          rows={pedidosComCliente || []}
+          rows={pedidosComCliente}
           columns={columns}
           loading={isLoading}
           pageSize={10}
@@ -277,11 +320,12 @@ function Pedidos() {
             value={clienteId || ""}
             onChange={(e) => setClienteId(e.target.value)}
           >
-            {clientes?.map((cliente) => (
-              <MenuItem key={cliente.id} value={cliente.id}>
-                {cliente.nome}
-              </MenuItem>
-            ))}
+            {Array.isArray(clientes) &&
+              clientes.map((cliente) => (
+                <MenuItem key={cliente.id} value={cliente.id}>
+                  {cliente.nome}
+                </MenuItem>
+              ))}
           </TextField>
         </DialogContent>
         <DialogActions>
@@ -291,6 +335,29 @@ function Pedidos() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar de feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Tratamento de erro global do hook usePedidos */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error.message || "Erro ao carregar pedidos"}
+        </Alert>
+      )}
     </Container>
   );
 }
