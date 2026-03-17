@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
-@EnableMethodSecurity // habilita uso de @PreAuthorize nos controllers
+@EnableMethodSecurity
 @Configuration
 public class WebSecurityConfig {
 
@@ -20,19 +20,22 @@ public class WebSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // habilita CORS com config padrão
+            .cors(cors -> {}) // habilita CORS padrão
             .authorizeHttpRequests(auth -> auth
                 // Endpoints públicos
                 .requestMatchers("/auth/login", "/auth/register").permitAll()
-                // Exemplo: apenas ADMIN acessa /usuarios/**
+                // Apenas ADMIN acessa /usuarios/**
                 .requestMatchers("/usuarios/**").hasRole("ADMIN")
+                // Dashboard acessível apenas para ROLE_USER
+                .requestMatchers("/dashboard/**").hasRole("USER")
+                // Clientes e pedidos também exigem autenticação
+                .requestMatchers("/clientes/**").authenticated()
+                .requestMatchers("/pedidos/**").authenticated()
                 // Qualquer outro endpoint exige autenticação
                 .anyRequest().authenticated()
             )
-            // JWT → sem sessão no servidor
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // registra o filtro JWT antes do filtro padrão de autenticação
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -40,7 +43,6 @@ public class WebSecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt é padrão para senhas seguras
         return new BCryptPasswordEncoder();
     }
 
