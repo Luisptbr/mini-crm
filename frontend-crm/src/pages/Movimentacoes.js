@@ -8,80 +8,169 @@ import {
   DialogContent,
   TextField,
   DialogActions,
+  MenuItem,
+  IconButton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMovimentacoes } from "../hooks/useMovimentacoes";
 import api from "../services/api";
+import EditIcon from "@mui/icons-material/Edit";
 
 function Movimentacoes() {
-  const { data: movimentacoes, isLoading, refetch } = useMovimentacoes();
+  const { data: movimentacoes = [], isLoading, refetch } = useMovimentacoes();
   const [open, setOpen] = useState(false);
-  const [tipo, setTipo] = useState("");
-  const [produtoId, setProdutoId] = useState("");
-  const [quantidade, setQuantidade] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
-  const handleAdd = async () => {
-    await api.post("/movimentacoes", { tipo, produtoId, quantidade });
-    setOpen(false);
-    setTipo("");
-    setProdutoId("");
-    setQuantidade("");
-    refetch();
+  const [funcionario, setFuncionario] = useState("");
+  const [itemId, setItemId] = useState("");
+  const [quantidade, setQuantidade] = useState(1);
+
+  const [estoque, setEstoque] = useState([]);
+
+  useEffect(() => {
+    const fetchEstoque = async () => {
+      try {
+        const { data } = await api.get("/estoque");
+        const disponiveis = data.filter((item) => item.quantidade >= 1);
+        setEstoque(disponiveis);
+      } catch (error) {
+        console.error(error);
+        alert("Erro ao carregar estoque");
+      }
+    };
+    fetchEstoque();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      if (editingId) {
+        await api.put(`/movimentacao/${editingId}`, {
+          funcionario,
+          quantidade,
+        });
+      } else {
+        await api.post("/movimentacao", {
+          item: { id: itemId },
+          funcionario,
+          quantidadeRetirada: quantidade,
+        });
+      }
+      handleClose();
+      await refetch();
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data || "Erro inesperado ao salvar movimentação");
+    }
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    setEditingId(null);
+    setFuncionario("");
+    setItemId("");
+    setQuantidade(1);
+  };
+
+  const handleEdit = (row) => {
+    setEditingId(row.id);
+    setFuncionario(row.funcionario);
+    setQuantidade(row.quantidade);
+    setOpen(true);
+  };
+
+  const rows = movimentacoes.map((m) => ({
+    id: m.id,
+    funcionario: m.funcionario,
+    quantidade: m.quantidade,
+    produto: m.produto,
+    dataFormatada: m.data ?? "—",
+  }));
+
   const columns = [
-    { field: "tipo", headerName: "Tipo", width: 150 },
-    { field: "produtoId", headerName: "Produto", width: 200 },
+    { field: "produto", headerName: "Item", width: 250 },
     { field: "quantidade", headerName: "Quantidade", width: 150 },
+    { field: "funcionario", headerName: "Funcionário", width: 200 },
+    { field: "dataFormatada", headerName: "Data", width: 150 },
+    {
+      field: "actions",
+      headerName: "Ações",
+      width: 100,
+      renderCell: (params) => (
+        <IconButton
+          color="primary"
+          size="small"
+          onClick={() => handleEdit(params.row)}
+        >
+          <EditIcon />
+        </IconButton>
+      ),
+    },
   ];
 
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
-        Movimentações
+        Movimentações de Estoque
       </Typography>
       <Button variant="contained" sx={{ mb: 2 }} onClick={() => setOpen(true)}>
-        Nova Movimentação
+        Nova Retirada
       </Button>
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
-          rows={movimentacoes || []}
+          autoHeight
+          rows={rows || []}
           columns={columns}
           loading={isLoading}
-          pageSize={5}
+          pageSize={10}
+          pagination
+          rowsPerPageOptions={[10, 25, 50, 100]}
         />
       </Paper>
-      <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle>Nova Movimentação</DialogTitle>
+
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>
+          {editingId ? "Editar Movimentação" : "Registrar Retirada"}
+        </DialogTitle>
         <DialogContent>
           <TextField
-            label="Tipo (Entrada/Saída)"
+            label="Funcionário"
             fullWidth
             margin="normal"
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
+            value={funcionario}
+            onChange={(e) => setFuncionario(e.target.value)}
           />
-          <TextField
-            label="Produto ID"
-            fullWidth
-            margin="normal"
-            value={produtoId}
-            onChange={(e) => setProdutoId(e.target.value)}
-          />
+
+          {!editingId && (
+            <TextField
+              select
+              label="Item"
+              fullWidth
+              margin="normal"
+              value={itemId}
+              onChange={(e) => setItemId(e.target.value)}
+            >
+              {estoque.map((item) => (
+                <MenuItem key={item.id} value={item.id}>
+                  {item.nome} (Qtd: {item.quantidade})
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+
           <TextField
             label="Quantidade"
+            type="number"
             fullWidth
             margin="normal"
-            type="number"
             value={quantidade}
-            onChange={(e) => setQuantidade(e.target.value)}
+            onChange={(e) => setQuantidade(Number(e.target.value))}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleAdd} variant="contained">
-            Salvar
+          <Button onClick={handleClose}>Cancelar</Button>
+          <Button onClick={handleSave} variant="contained">
+            {editingId ? "Atualizar" : "Salvar"}
           </Button>
         </DialogActions>
       </Dialog>

@@ -8,13 +8,17 @@ import {
   Box,
   ListItemButton,
   Divider,
+  IconButton,
+  CssBaseline,
 } from "@mui/material";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
 import { Link } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
 
 const drawerWidth = 240;
 
-function Layout({ children }) {
+function Layout({ children, darkMode, toggleTheme }) {
   const role = localStorage.getItem("role");
 
   const menuAdmin = [
@@ -36,20 +40,19 @@ function Layout({ children }) {
 
   return (
     <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+
       {/* Barra superior */}
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-          backgroundColor: "#1976d2",
-        }}
-      >
+      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar>
           <Typography variant="h6" noWrap component="div">
             Mini CRM
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          {/* Botão de sair no topo */}
+          {/* Botão de alternância de tema */}
+          <IconButton onClick={toggleTheme} color="inherit">
+            {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
           <LogoutButton />
         </Toolbar>
       </AppBar>
@@ -63,6 +66,8 @@ function Layout({ children }) {
           [`& .MuiDrawer-paper`]: {
             width: drawerWidth,
             boxSizing: "border-box",
+            backgroundColor: (t) => t.palette.background.default,
+            color: (t) => t.palette.text.primary,
           },
         }}
       >
@@ -74,9 +79,19 @@ function Layout({ children }) {
                 key={item.text}
                 component={Link}
                 to={item.path}
-                sx={{ "&:hover": { backgroundColor: "#f0f0f0" } }}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: (t) => t.palette.action.hover,
+                  },
+                  borderRadius: 1,
+                  mx: 1,
+                  my: 0.5,
+                }}
               >
-                <ListItemText primary={item.text} />
+                <ListItemText
+                  primary={item.text}
+                  primaryTypographyProps={{ variant: "subtitle1" }}
+                />
               </ListItemButton>
             ))}
           </List>
@@ -91,8 +106,8 @@ function Layout({ children }) {
           flexGrow: 1,
           p: 3,
           ml: `${drawerWidth}px`,
-          backgroundColor: "#fafafa",
           minHeight: "100vh",
+          width: `calc(100% - ${drawerWidth}px)`, // garante largura total
         }}
       >
         <Toolbar />

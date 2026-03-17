@@ -8,47 +8,54 @@ import {
   DialogContent,
   TextField,
   DialogActions,
+  IconButton,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState } from "react";
 import { useClientes } from "../hooks/useClientes";
 import api from "../services/api";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+
+// Função utilitária para formatar telefone
+const formatarTelefone = (valor) => {
+  if (!valor) return "";
+  const apenasNumeros = valor.replace(/\D/g, "").slice(0, 11);
+
+  if (apenasNumeros.length <= 2) return apenasNumeros;
+  if (apenasNumeros.length <= 7) {
+    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`;
+  }
+  return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-${apenasNumeros.slice(7)}`;
+};
 
 function Clientes() {
   const { data: clientes, isLoading, refetch } = useClientes();
   const [open, setOpen] = useState(false);
 
-  // Estados do formulário
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
-  const [editingId, setEditingId] = useState(null); // ✅ controla edição
+  const [editingId, setEditingId] = useState(null);
 
-  // Criar ou editar cliente
   const handleSave = async () => {
     if (editingId) {
       await api.put(`/clientes/${editingId}`, { nome, telefone, email });
     } else {
       await api.post("/clientes", { nome, telefone, email });
     }
-    setOpen(false);
-    setNome("");
-    setTelefone("");
-    setEmail("");
-    setEditingId(null);
+    handleClose();
     refetch();
   };
 
-  // Abrir modal para editar
   const handleEdit = (cliente) => {
     setNome(cliente.nome);
-    setTelefone(cliente.telefone);
+    setTelefone(formatarTelefone(cliente.telefone));
     setEmail(cliente.email);
     setEditingId(cliente.id);
     setOpen(true);
   };
 
-  // Excluir cliente
   const handleDelete = async (cliente) => {
     if (
       window.confirm(
@@ -60,6 +67,14 @@ function Clientes() {
     }
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    setNome("");
+    setTelefone("");
+    setEmail("");
+    setEditingId(null);
+  };
+
   const columns = [
     { field: "nome", headerName: "Nome", width: 200 },
     { field: "telefone", headerName: "Telefone", width: 200 },
@@ -67,26 +82,24 @@ function Clientes() {
     {
       field: "actions",
       headerName: "Ações",
-      width: 200,
+      width: 120,
       renderCell: (params) => (
         <>
-          <Button
-            variant="outlined"
+          <IconButton
             color="primary"
             size="small"
             onClick={() => handleEdit(params.row)}
             sx={{ mr: 1 }}
           >
-            Editar
-          </Button>
-          <Button
-            variant="outlined"
+            <EditIcon />
+          </IconButton>
+          <IconButton
             color="error"
             size="small"
             onClick={() => handleDelete(params.row)}
           >
-            Excluir
-          </Button>
+            <DeleteIcon />
+          </IconButton>
         </>
       ),
     },
@@ -112,13 +125,16 @@ function Clientes() {
       </Button>
       <Paper sx={{ height: 400, width: "100%" }}>
         <DataGrid
+          autoHeight
           rows={clientes || []}
           columns={columns}
           loading={isLoading}
-          pageSize={5}
+          pageSize={10}
+          pagination
+          rowsPerPageOptions={[10, 25, 50, 100]}
         />
       </Paper>
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={handleClose}>
         <DialogTitle>
           {editingId ? "Editar Cliente" : "Novo Cliente"}
         </DialogTitle>
@@ -135,7 +151,8 @@ function Clientes() {
             fullWidth
             margin="normal"
             value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
+            onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+            inputProps={{ inputMode: "numeric" }}
           />
           <TextField
             label="Email"
@@ -146,7 +163,7 @@ function Clientes() {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={handleClose}>Cancelar</Button>
           <Button onClick={handleSave} variant="contained">
             Salvar
           </Button>
