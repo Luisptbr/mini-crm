@@ -8,7 +8,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
-    // novos métodos para isolamento
-    List<Pedido> findByUsuarioId(UUID usuarioId);
-    Optional<Pedido> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+
+	// já existentes
+	List<Pedido> findByUsuarioId(UUID usuarioId);
+
+	Optional<Pedido> findByIdAndUsuarioId(UUID id, UUID usuarioId);
+
+	// novos métodos necessários para o RelatorioService
+	List<Pedido> findByStatus(String status);
+
+	List<Pedido> findByStatusIn(List<String> status);
 }
