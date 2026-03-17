@@ -100,35 +100,35 @@ FUNCIONALIDADES
 
 ------------------------------------------------------------
 
-CAPTURAS DE TELA
+## 📸 Capturas de Tela
 
-Login:
-docs/images/login-light.png
-docs/images/login-dark.png
+### Login
+![Login - Tema Claro](docs/images/login-light.png)
+![Login - Tema Escuro](docs/images/login-dark.png)
 
-Dashboard:
-docs/images/dashboard-light.png
-docs/images/dashboard-dark.png
+### Dashboard
+![Dashboard - Tema Claro](docs/images/dashboard-light.png)
+![Dashboard - Tema Escuro](docs/images/dashboard-dark.png)
 
-Clientes:
-docs/images/clientes-light.png
-docs/images/clientes-dark.png
+### Clientes
+![Clientes - Tema Claro](docs/images/clientes-light.png)
+![Clientes - Tema Escuro](docs/images/clientes-dark.png)
 
-Pedidos:
-docs/images/pedidos-light.png
-docs/images/pedidos-dark.png
+### Pedidos
+![Pedidos - Tema Claro](docs/images/pedidos-light.png)
+![Pedidos - Tema Escuro](docs/images/pedidos-dark.png)
 
-Estoque:
-docs/images/estoque-light.png
-docs/images/estoque-dark.png
+### Estoque
+![Estoque - Tema Claro](docs/images/estoque-light.png)
+![Estoque - Tema Escuro](docs/images/estoque-dark.png)
 
-Movimentações:
-docs/images/movimentacoes-light.png
-docs/images/movimentacoes-dark.png
+### Movimentações
+![Movimentações - Tema Claro](docs/images/movimentacoes-light.png)
+![Movimentações - Tema Escuro](docs/images/movimentacoes-dark.png)
 
-Relatórios:
-docs/images/relatorios-light.png
-docs/images/relatorios-dark.png
+### Relatórios
+![Relatórios - Tema Claro](docs/images/relatorios-light.png)
+![Relatórios - Tema Escuro](docs/images/relatorios-dark.png)
 
 ------------------------------------------------------------
 
