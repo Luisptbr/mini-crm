@@ -45,7 +45,7 @@ public class PedidoService {
         return pedidoRepository.findByUsuarioId(usuarioId);
     }
 
-    // Atualizar pedido
+ // Atualizar pedido
     public Pedido atualizar(UUID id, Pedido pedidoAtualizado) {
         UUID usuarioId = usuarioLogado().getId();
         Pedido pedidoExistente = pedidoRepository.findByIdAndUsuarioId(id, usuarioId)
@@ -57,9 +57,11 @@ public class PedidoService {
 
         pedidoExistente.setDescricao(pedidoAtualizado.getDescricao());
         pedidoExistente.setValor(pedidoAtualizado.getValor());
+        pedidoExistente.setStatus(pedidoAtualizado.getStatus());
 
         return pedidoRepository.save(pedidoExistente);
     }
+
 
     // Deletar pedido
     public void deletar(UUID id) {

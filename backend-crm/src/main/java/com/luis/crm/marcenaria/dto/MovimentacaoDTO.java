@@ -1,33 +1,35 @@
 package com.luis.crm.marcenaria.dto;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 public class MovimentacaoDTO {
-	private Long id;
-	private String tipo; // ENTRADA ou SAIDA
+	private UUID id;
 	private String produto;
 	private Integer quantidade;
-	private LocalDate data;
+	private String data;
+	private String funcionario;
 
-	// getters e setters
-	public Long getId() {
-		return this.id;
+	public MovimentacaoDTO(UUID id, String produto, Integer quantidade, LocalDate data, String funcionario) {
+		this.id = id;
+		this.produto = produto;
+		this.quantidade = quantidade;
+		this.data = data != null ? data.format(DateTimeFormatter.ofPattern("dd/MM/yy")) : null;
+		this.funcionario = funcionario;
 	}
 
-	public void setId(Long id) {
+	// Getters e Setters
+	public UUID getId() {
+		return id;
+	}
+
+	public void setId(UUID id) {
 		this.id = id;
 	}
 
-	public String getTipo() {
-		return this.tipo;
-	}
-
-	public void setTipo(String tipo) {
-		this.tipo = tipo;
-	}
-
 	public String getProduto() {
-		return this.produto;
+		return produto;
 	}
 
 	public void setProduto(String produto) {
@@ -35,19 +37,26 @@ public class MovimentacaoDTO {
 	}
 
 	public Integer getQuantidade() {
-		return this.quantidade;
+		return quantidade;
 	}
 
 	public void setQuantidade(Integer quantidade) {
 		this.quantidade = quantidade;
 	}
 
-	public LocalDate getData() {
-		return this.data;
+	public String getData() {
+		return data;
 	}
 
-	public void setData(LocalDate data) {
+	public void setData(String data) {
 		this.data = data;
 	}
 
+	public String getFuncionario() {
+		return funcionario;
+	}
+
+	public void setFuncionario(String funcionario) {
+		this.funcionario = funcionario;
+	}
 }
